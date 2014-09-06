@@ -23,7 +23,7 @@ if [ -z "$SSH_CONNECTION" ]; then
 
   else
     # if we have a PID, check if the corresponding agent is still running
-    if kill -0 $SSH_AGENT_PID; then
+    if kill -0 $SSH_AGENT_PID 2>/dev/null; then
       # Just a NOP (do not know better way)
       echo "" > /dev/null
     else
@@ -46,35 +46,37 @@ if [ -z "$SSH_CONNECTION" ]; then
   export SSH_AUTH_SOCK
   export SSH_AGENT_PID
 
-  # get ssh-add command and the keys in ssh-agent
-  SSH_ADD=$(which ssh-add)
-  keys=$($SSH_ADD -l | cut -d " " -f 3)
+  if [[ ! -z $(ls $SSH_ID_DIR ) ]]; then
+    # get ssh-add command and the keys in ssh-agent
+    SSH_ADD=$(which ssh-add)
+    keys=$($SSH_ADD -l | cut -d " " -f 3)
 
-  # go through all files in $SSH_ID_DIR
-  add_key=()
-  for k_file in `ls $SSH_ID_DIR/*`; do
-    #pub=${k_file%pub}
-    #ppk=${k_file%ppk}
+    # go through all files in $SSH_ID_DIR
+    add_key=()
+    for k_file in `ls $SSH_ID_DIR/*`; do
+      #pub=${k_file%pub}
+      #ppk=${k_file%ppk}
 
-    # If $pub and $ppk equal to $k_file, the file name does not contain
-    # pub or ppk at most end.
-    # So then it is save to try to add this id file to the agent.
-    #if [ "$pub" = "$k_file" -a "$ppk" = "$k_file" ]; then
+      # If $pub and $ppk equal to $k_file, the file name does not contain
+      # pub or ppk at most end.
+      # So then it is save to try to add this id file to the agent.
+      #if [ "$pub" = "$k_file" -a "$ppk" = "$k_file" ]; then
 
-    if [[ ! $k_file =~ '(pub|ppk)$' ]]; then
-      # Check if current key is already in the ssh-agent.
-      #if [ ! ${keys[(i)$k_file]} -le ${#keys} ]; then
+      if [[ "$k_file" -pcre-match '^id_[a-zA-Z0-9]*_?rsa(?!\.(pub)|(ppk))$' ]]; then
+        # Check if current key is already in the ssh-agent.
+        #if [ ! ${keys[(i)$k_file]} -le ${#keys} ]; then
 
-      if [[ ! $keys =~ $k_file ]]; then
-        add_key[$(($#add_key +1))]=$k_file
+        if [[ ! $keys =~ $k_file ]]; then
+          add_key[$(($#add_key +1))]=$k_file
+        fi
       fi
+    done
+
+    if [[ ! -z "$add_key" ]]; then
+      $SSH_ADD $add_key
     fi
-  done
 
-  if [[ ! -z "$add_key" ]]; then
-    $SSH_ADD $add_key
+    unset SSH_ADD
   fi
-
-  unset SSH_ADD
 fi
 
