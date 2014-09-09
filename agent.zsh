@@ -1,4 +1,3 @@
-export SSH_AUTH_SOCK=$HOME/.ssh/auth_socket
 
 # If we have a forwarded agent, do nothing
 if [ -z "$SSH_CONNECTION" ]; then
@@ -15,7 +14,7 @@ if [ -z "$SSH_CONNECTION" ]; then
 
     # If we have not try to find if a agent is running for the current user
     if [ -x $(which pgrep) ]; then
-      SSH_AGENT_PID=$(pgrep ssh-agent)
+      SSH_AGENT_PID=$(pgrep -u `whoami` ssh-agent)
     else
       SSH_AGENT_PID=$(ps -u `whoami` -o pid,command | grep -i sh-ag | grep -i ent | sed -Ee 's/^\s*//g' | cut -d " " -f 1)
     fi
@@ -34,6 +33,7 @@ if [ -z "$SSH_CONNECTION" ]; then
   # if we have no PID start a new agent.
   if [ -z "$SSH_AGENT_PID" ]; then
 
+    SSH_AUTH_SOCK=$HOME/.ssh/auth_socket
     # check if there is an old socket file and remove it
     if [ -w "$SSH_AUTH_SOCK" ]; then
       rm $SSH_AUTH_SOCK
@@ -43,6 +43,10 @@ if [ -z "$SSH_CONNECTION" ]; then
   fi
 
   # Set environment
+  if [[ -z "$SSH_AUTH_SOCK" && ! -z "$SSH_AGENT_PID" ]]; then
+    SSH_AUTH_SOCK=$HOME/.ssh/auth_socket
+  fi
+
   export SSH_AUTH_SOCK
   export SSH_AGENT_PID
 
@@ -62,7 +66,7 @@ if [ -z "$SSH_CONNECTION" ]; then
       # So then it is save to try to add this id file to the agent.
       #if [ "$pub" = "$k_file" -a "$ppk" = "$k_file" ]; then
 
-      if [[ "$k_file" -pcre-match '^id_[a-zA-Z0-9]*_?rsa(?!\.(pub)|(ppk))$' ]]; then
+      if [[ "$k_file" -pcre-match 'id_[a-zA-Z0-9]*_?rsa(?!\.(pub)|(ppk))$' ]]; then
         # Check if current key is already in the ssh-agent.
         #if [ ! ${keys[(i)$k_file]} -le ${#keys} ]; then
 
