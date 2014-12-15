@@ -4,7 +4,11 @@ if [ -z "$SSH_CONNECTION" ]; then
 
   # Check if gpg-agent took other the socket variable
   # On some linux systems the agent does not work well with `ssh-add`
-  if [[ $SSH_AUTH_SOCK =~ 'gpg' ]]; then
+  #gpg_pid=$(ps -u `whoami` -o pid,command | grep -i gpg-ag | grep -i ent | sed -Ee 's/^\s*//g' | cut -d " " -f 1)
+  if [[ ! -z "$GPG_AGENT_INFO" ]]; then
+    # We have unset the variables and use ssh-agent.
+    # to provide an agent with rsa 8192 bit support
+    #source $HOME/.gpg-agent-info
     unset SSH_AGENT_PID
     unset SSH_AUTH_SOCK
   fi
