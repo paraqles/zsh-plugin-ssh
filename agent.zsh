@@ -7,7 +7,7 @@ if [[ -z "$SSH_CONNECTION" ]]; then
     export SSH_AGENT_PID=$(find_pid ssh-agent)
     export SSH_AUTH_SOCK=$HOME/.ssh/auth_socket
 
-    if [[ $(check_pid_running $SSH_AGENT_PID) ]]; then
+    if [ `check_pid_running $SSH_AGENT_PID` ]; then
       unset SSH_AGENT_PID
 
       # check if there is an old socket file and remove it
