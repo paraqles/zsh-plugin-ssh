@@ -15,7 +15,7 @@ if [[ -z "$SSH_CONNECTION" ]]; then
         rm $SSH_AUTH_SOCK
       fi
 
-      eval `ssh-agent -a $SSH_AUTH_SOCK -s`
+      eval $(ssh-agent -s -a $SSH_AUTH_SOCK)
     fi
   fi
 
