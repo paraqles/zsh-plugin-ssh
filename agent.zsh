@@ -3,19 +3,24 @@ if [[ -z "$SSH_CONNECTION" ]]; then
 
   # Avoid actions when using Mac OS Keychain
   if [[ ! $SSH_AUTH_SOCK =~ "com\.apple\.launchd" ]]; then
+    echo USE OPENSSH
 
     export SSH_AGENT_PID=$(find_pid ssh-agent)
     export SSH_AUTH_SOCK=$HOME/.ssh/auth_socket
 
-    if [ `check_pid_running $SSH_AGENT_PID` ]; then
+    check_pid_running $SSH_AGENT_PID
+    if [[ "$?" -gt 0 ]]; then
+      echo SSH AGENT not running
       unset SSH_AGENT_PID
 
       # check if there is an old socket file and remove it
       if [[ -w "$SSH_AUTH_SOCK" ]]; then
+        echo SSH AUTH sock exists
         rm $SSH_AUTH_SOCK
       fi
 
-      eval $(ssh-agent -s -a $SSH_AUTH_SOCK)
+      echo Start new SSH AGENT
+      eval $(ssh-agent -a $SSH_AUTH_SOCK -s)
     fi
   fi
 
