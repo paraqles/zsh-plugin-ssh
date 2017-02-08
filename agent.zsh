@@ -27,7 +27,7 @@ if [[ -z "$SSH_CONNECTION" ]]; then
     # go through all files in $SSH_ID_DIR
     add_key=()
     for k_file in `ls $SSH_ID_DIR/*`; do
-      if [[ "$k_file" -pcre-match 'id_[a-zA-Z0-9]*_?rsa(?!\.(pub)|(ppk))$' ]]; then
+      if [[ "$k_file" -pcre-match 'id_[a-zA-Z0-9@\-]*_?(rsa)?(?!\.(pub)|(ppk))$' ]]; then
         # Check if current key is already in the ssh-agent.
         if [[ ! $keys =~ $k_file ]]; then
           add_key[$(($#add_key +1))]=$k_file
