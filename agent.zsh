@@ -24,13 +24,10 @@ if [[ -z "$SSH_CONNECTION" ]]; then
     SSH_ADD=$(which ssh-add)
     keys=$($SSH_ADD -l | cut -d " " -f 3)
 
-    echo $keys
-    echo "\n"
     # go through all files in $SSH_ID_DIR
     add_key=()
     for k_file in `ls $SSH_ID_DIR/*`; do
-      echo $k_file
-      #if [[ "$k_file" -pcre-match 'id_[a-zA-Z0-9@\-]*_?(?:rsa)?(?!(?:\.(?:pub)|(?:ppk)))$' ]]; then
+      # Check if file is a private key -> Convention over Configuration
       if [[ "$k_file" -pcre-match 'id_\w*_?(?:rsa|dsa|ecdsa)?(?!\.(?:pub|ppk))$' ]]; then
         # Check if current key is already in the ssh-agent.
         if [[ ! $keys =~ $k_file ]]; then
