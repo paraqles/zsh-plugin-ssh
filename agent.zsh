@@ -3,12 +3,17 @@ if [[ -z "$SSH_CONNECTION" ]]; then
 
   # Avoid actions when using Mac OS Keychain
   if [[ ! $SSH_AUTH_SOCK =~ "com\.apple\.launchd" ]]; then
-    export SSH_AGENT_PID=$(find_pid ssh-agent)
-    export SSH_AUTH_SOCK=$HOME/.ssh/auth_socket
+    export SSH_AGENT_PID=$(find_pid 'ssh-agent')
+
+    if [[ -z "$SSH_AGENT_PID" ]]; then
+      export SSH_AGENT_PID=$(find_pid '.*ssh-agent')
+    fi
 
     check_pid_running $SSH_AGENT_PID
     if [[ "$?" -gt 0 ]]; then
       unset SSH_AGENT_PID
+
+      export SSH_AUTH_SOCK=$HOME/.ssh/auth_socket
 
       # check if there is an old socket file and remove it
       if [[ -w "$SSH_AUTH_SOCK" ]]; then
@@ -16,6 +21,8 @@ if [[ -z "$SSH_CONNECTION" ]]; then
       fi
 
       eval $(ssh-agent -a $SSH_AUTH_SOCK -s)
+    else
+      export SSH_AUTH_SOCK=$(find /tmp -type s -iname 'agent.*' 2>/dev/null)
     fi
   fi
 
